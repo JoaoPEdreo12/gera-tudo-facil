@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Materias = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [isSubjectDialogOpen, setIsSubjectDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   
@@ -50,7 +50,7 @@ const Materias = () => {
 
   const filteredSubjects = subjects.filter(subject => {
     const matchesSearch = subject.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority = !priorityFilter || subject.priority.toString() === priorityFilter;
+    const matchesPriority = !priorityFilter || priorityFilter === 'all' || subject.priority.toString() === priorityFilter;
     return matchesSearch && matchesPriority;
   });
 
@@ -136,7 +136,7 @@ const Materias = () => {
               <SelectValue placeholder="Filtrar por prioridade" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as prioridades</SelectItem>
+              <SelectItem value="all">Todas as prioridades</SelectItem>
               <SelectItem value="3">Alta Prioridade</SelectItem>
               <SelectItem value="2">Média Prioridade</SelectItem>
               <SelectItem value="1">Baixa Prioridade</SelectItem>

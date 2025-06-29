@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { User, LogOut } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'wouter';
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { profile, progress } = useProfile();
-  const location = useLocation();
+  const [location] = useLocation();
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
@@ -40,7 +40,7 @@ const Header = () => {
                 key={item.name}
                 to={item.href}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === item.href
+                  location === item.href
                     ? 'text-primary bg-primary/10'
                     : 'text-gray-700 hover:text-primary hover:bg-gray-100'
                 }`}
@@ -56,14 +56,14 @@ const Header = () => {
               <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
                 <span>Nível {progress.level}</span>
                 <span>•</span>
-                <span>{progress.total_points} pts</span>
+                <span>{progress.totalPoints} pts</span>
               </div>
             )}
             
             <div className="flex items-center space-x-2">
               <User className="w-5 h-5 text-gray-600" />
               <span className="text-sm text-gray-700">
-                {profile?.full_name || user?.email}
+                {profile?.fullName || user?.email}
               </span>
             </div>
 
