@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Cronograma from "./pages/Cronograma";
 import Materias from "./pages/Materias";
+import Flashcards from "./pages/Flashcards";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,14 +42,14 @@ const App = () => (
                 <Layout><Materias /></Layout>
               </ProtectedRoute>
             } />
+            <Route path="/flashcards" element={
+              <ProtectedRoute>
+                <Layout><Flashcards /></Layout>
+              </ProtectedRoute>
+            } />
             <Route path="/relatorios" element={
               <ProtectedRoute>
                 <Layout><div>Relatórios em desenvolvimento</div></Layout>
-              </ProtectedRoute>
-            } />
-            <Route path="/flashcards" element={
-              <ProtectedRoute>
-                <Layout><div>Flashcards em desenvolvimento</div></Layout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />

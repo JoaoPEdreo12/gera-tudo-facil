@@ -46,7 +46,8 @@ export const useStudySessions = () => {
       if (error) {
         console.error('Error fetching sessions:', error);
       } else {
-        setSessions(data || []);
+        // Type assertion para garantir que os dados estão no formato correto
+        setSessions((data as StudySession[]) || []);
       }
     } catch (error) {
       console.error('Error fetching sessions:', error);
@@ -68,7 +69,7 @@ export const useStudySessions = () => {
         return { error };
       }
 
-      setSessions(prev => [...prev, data]);
+      setSessions(prev => [...prev, data as StudySession]);
       return { data, error: null };
     } catch (error) {
       console.error('Error creating session:', error);

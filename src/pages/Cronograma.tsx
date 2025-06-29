@@ -3,67 +3,98 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, FileText } from 'lucide-react';
+import { Calendar, Clock, FileText, Plus, Edit } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { SessionForm } from '@/components/SessionForm';
+import { StudyTimer } from '@/components/StudyTimer';
+import { useStudySessions } from '@/hooks/useStudySessions';
+import { useSubjects } from '@/hooks/useSubjects';
+import { useAI } from '@/hooks/useAI';
+import { useToast } from '@/hooks/use-toast';
+import { format, isToday, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const Cronograma = () => {
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
+  const [isSessionDialogOpen, setIsSessionDialogOpen] = useState(false);
+  const [isTimerDialogOpen, setIsTimerDialogOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+  const [selectedSession, setSelectedSession] = useState(null);
   
-  const scheduleData = [
-    {
-      id: 1,
-      time: '08:00 - 10:00',
-      subject: 'Matemática',
-      topic: 'Funções Quadráticas',
-      type: 'Estudo',
-      priority: 'alta',
-      completed: false,
-    },
-    {
-      id: 2,
-      time: '10:30 - 12:00',
-      subject: 'Português',
-      topic: 'Literatura Brasileira',
-      type: 'Revisão',
-      priority: 'média',
-      completed: true,
-    },
-    {
-      id: 3,
-      time: '14:00 - 16:00',
-      subject: 'Física',
-      topic: 'Cinemática',
-      type: 'Exercícios',
-      priority: 'alta',
-      completed: false,
-    },
-    {
-      id: 4,
-      time: '16:30 - 18:00',
-      subject: 'Química',
-      topic: 'Estequiometria',
-      type: 'Estudo',
-      priority: 'baixa',
-      completed: false,
-    },
-  ];
+  const { sessions, loading, completeSession } = useStudySessions();
+  const { subjects } = useSubjects();
+  const { askAI, loading: aiLoading } = useAI();
+  const { toast } = useToast();
 
-  const getPriorityColor = (priority: string) => {
+  const todaySessions = sessions.filter(session => 
+    isToday(parseISO(session.scheduled_date))
+  );
+
+  const completedToday = todaySessions.filter(session => 
+    session.status === 'completed'
+  ).length;
+
+  const getPriorityColor = (priority: number) => {
     switch (priority) {
-      case 'alta': return 'bg-red-100 text-red-800 border-red-200';
-      case 'média': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'baixa': return 'bg-green-100 text-green-800 border-green-200';
+      case 3: return 'bg-red-100 text-red-800 border-red-200';
+      case 2: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 1: return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'Estudo': return 'bg-blue-100 text-blue-800';
-      case 'Revisão': return 'bg-purple-100 text-purple-800';
-      case 'Exercícios': return 'bg-orange-100 text-orange-800';
+      case 'study': return 'bg-blue-100 text-blue-800';
+      case 'review': return 'bg-purple-100 text-purple-800';
+      case 'exercise': return 'bg-orange-100 text-orange-800';
+      case 'exam': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const handleStartSession = (session: any) => {
+    setSelectedSession(session);
+    setIsTimerDialogOpen(true);
+  };
+
+  const handleCompleteSession = async (sessionId: string) => {
+    try {
+      await completeSession(sessionId);
+      toast({ title: "Sessão concluída com sucesso!" });
+      setIsTimerDialogOpen(false);
+    } catch (error) {
+      toast({ 
+        title: "Erro", 
+        description: "Não foi possível concluir a sessão",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const generateAISuggestion = async () => {
+    const subjectNames = subjects.map(s => s.name);
+    const completionRate = todaySessions.length > 0 ? (completedToday / todaySessions.length) * 100 : 0;
+    
+    const prompt = `Com base no progresso do estudante (${completionRate.toFixed(0)}% das tarefas de hoje concluídas) e suas matérias (${subjectNames.join(', ')}), dê uma sugestão motivadora e prática para otimizar os estudos.`;
+    
+    const result = await askAI(prompt);
+    if (result.response) {
+      toast({ 
+        title: "💡 Sugestão da IA", 
+        description: result.response,
+        duration: 8000
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -103,7 +134,7 @@ const Cronograma = () => {
             <Calendar className="w-8 h-8 text-blue-500" />
             <div>
               <p className="text-sm text-gray-600">Sessões Hoje</p>
-              <p className="text-2xl font-bold">4</p>
+              <p className="text-2xl font-bold">{todaySessions.length}</p>
             </div>
           </div>
         </Card>
@@ -113,7 +144,9 @@ const Cronograma = () => {
             <Clock className="w-8 h-8 text-green-500" />
             <div>
               <p className="text-sm text-gray-600">Horas Planejadas</p>
-              <p className="text-2xl font-bold">7.5h</p>
+              <p className="text-2xl font-bold">
+                {(todaySessions.reduce((acc, s) => acc + s.duration_minutes, 0) / 60).toFixed(1)}h
+              </p>
             </div>
           </div>
         </Card>
@@ -123,7 +156,9 @@ const Cronograma = () => {
             <FileText className="w-8 h-8 text-purple-500" />
             <div>
               <p className="text-sm text-gray-600">Concluídas</p>
-              <p className="text-2xl font-bold">25%</p>
+              <p className="text-2xl font-bold">
+                {todaySessions.length > 0 ? Math.round((completedToday / todaySessions.length) * 100) : 0}%
+              </p>
             </div>
           </div>
         </Card>
@@ -132,63 +167,133 @@ const Cronograma = () => {
       {/* Schedule */}
       <Card className="p-6">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Segunda-feira, 15 de Janeiro</h2>
-          <Button>+ Adicionar Sessão</Button>
+          <h2 className="text-xl font-semibold">
+            {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+          </h2>
+          <div className="flex gap-2">
+            <Button onClick={generateAISuggestion} disabled={aiLoading}>
+              💡 Sugestão IA
+            </Button>
+            <Dialog open={isSessionDialogOpen} onOpenChange={setIsSessionDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Sessão
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Nova Sessão de Estudo</DialogTitle>
+                </DialogHeader>
+                <SessionForm 
+                  onClose={() => setIsSessionDialogOpen(false)}
+                  editingSession={editingSession}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <div className="space-y-4">
-          {scheduleData.map((session) => (
-            <div
-              key={session.id}
-              className={`p-4 rounded-lg border transition-all ${
-                session.completed 
-                  ? 'bg-green-50 border-green-200 opacity-75' 
-                  : 'bg-white border-gray-200 hover:shadow-md'
-              }`}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-medium text-gray-900">{session.time}</span>
-                    <Badge className={getPriorityColor(session.priority)}>
-                      {session.priority}
-                    </Badge>
-                    <Badge className={getTypeColor(session.type)}>
-                      {session.type}
-                    </Badge>
+          {todaySessions.map((session) => {
+            const subject = subjects.find(s => s.id === session.subject_id);
+            return (
+              <div
+                key={session.id}
+                className={`p-4 rounded-lg border transition-all ${
+                  session.status === 'completed' 
+                    ? 'bg-green-50 border-green-200 opacity-75' 
+                    : 'bg-white border-gray-200 hover:shadow-md'
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="font-medium text-gray-900">
+                        {session.scheduled_time || 'Sem horário'}
+                      </span>
+                      <Badge className={getPriorityColor(session.priority)}>
+                        {session.priority === 3 ? 'Alta' : session.priority === 2 ? 'Média' : 'Baixa'}
+                      </Badge>
+                      <Badge className={getTypeColor(session.type)}>
+                        {session.type === 'study' ? 'Estudo' : 
+                         session.type === 'review' ? 'Revisão' : 
+                         session.type === 'exercise' ? 'Exercícios' : 'Prova'}
+                      </Badge>
+                      {subject && (
+                        <Badge variant="outline" style={{ borderColor: subject.color }}>
+                          {subject.name}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <h3 className={`text-lg font-semibold ${
+                      session.status === 'completed' ? 'line-through text-gray-600' : 'text-gray-900'
+                    }`}>
+                      {session.title}
+                    </h3>
+                    
+                    {session.description && (
+                      <p className="text-gray-600 text-sm mt-1">{session.description}</p>
+                    )}
+                    
+                    <p className="text-sm text-gray-500 mt-1">
+                      Duração: {session.duration_minutes} minutos
+                    </p>
                   </div>
                   
-                  <h3 className={`text-lg font-semibold ${
-                    session.completed ? 'line-through text-gray-600' : 'text-gray-900'
-                  }`}>
-                    {session.subject} - {session.topic}
-                  </h3>
-                </div>
-                
-                <div className="flex gap-2">
-                  {session.completed ? (
-                    <Badge className="bg-green-100 text-green-800">Concluído</Badge>
-                  ) : (
-                    <>
-                      <Button variant="outline" size="sm">Editar</Button>
-                      <Button size="sm">Iniciar</Button>
-                    </>
-                  )}
+                  <div className="flex gap-2">
+                    {session.status === 'completed' ? (
+                      <Badge className="bg-green-100 text-green-800">Concluído</Badge>
+                    ) : (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setEditingSession(session);
+                            setIsSessionDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Editar
+                        </Button>
+                        <Button 
+                          size="sm"
+                          onClick={() => handleStartSession(session)}
+                        >
+                          Iniciar
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* AI Suggestions */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Sugestões da IA</h3>
-          <p className="text-blue-800 text-sm">
-            Com base no seu desempenho, recomendamos focar mais em Química esta semana. 
-            Considere adicionar uma sessão extra de revisão amanhã.
-          </p>
-        </div>
+        {todaySessions.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Nenhuma sessão agendada para hoje</p>
+          </div>
+        )}
       </Card>
+
+      {/* Timer Dialog */}
+      <Dialog open={isTimerDialogOpen} onOpenChange={setIsTimerDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedSession?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <StudyTimer 
+            duration={selectedSession?.duration_minutes}
+            onComplete={() => handleCompleteSession(selectedSession?.id)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -5,20 +5,27 @@ import { Progress } from '@/components/ui/progress';
 import { useProfile } from '@/hooks/useProfile';
 import { useStudySessions } from '@/hooks/useStudySessions';
 import { useSubjects } from '@/hooks/useSubjects';
+import { useAI } from '@/hooks/useAI';
 import { 
   Calendar, 
   Clock, 
   FileText, 
   User,
-  TrendingUp
+  TrendingUp,
+  Timer
 } from 'lucide-react';
 import { format, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { StudyTimer } from '@/components/StudyTimer';
 
 const Dashboard = () => {
   const { profile, progress, loading: profileLoading } = useProfile();
-  const { sessions, loading: sessionsLoading } = useStudySessions();
+  const { sessions, loading: sessionsLoading, completeSession } = useStudySessions();
   const { subjects } = useSubjects();
+  const { askAI } = useAI();
+  const [isTimerDialogOpen, setIsTimerDialogOpen] = useState(false);
 
   if (profileLoading || sessionsLoading) {
     return (
@@ -50,6 +57,11 @@ const Dashboard = () => {
       progress: Math.round(progressPercent)
     };
   });
+
+  const handleStartSession = async (sessionId: string) => {
+    await completeSession(sessionId);
+    setIsTimerDialogOpen(false);
+  };
 
   return (
     <div className="space-y-8">
@@ -156,6 +168,7 @@ const Dashboard = () => {
                       variant={session.status === 'completed' ? "outline" : "default"}
                       size="sm"
                       disabled={session.status === 'completed'}
+                      onClick={() => handleStartSession(session.id)}
                     >
                       {session.status === 'completed' ? 'Concluído' : 'Iniciar'}
                     </Button>
@@ -206,13 +219,23 @@ const Dashboard = () => {
           <Button variant="outline" className="h-20 flex-col space-y-2" asChild>
             <a href="/materias">
               <FileText className="w-6 h-6" />
-              <span>Nova Matéria</span>
+              <span>Matérias</span>
             </a>
           </Button>
-          <Button variant="outline" className="h-20 flex-col space-y-2">
-            <Clock className="w-6 h-6" />
-            <span>Timer</span>
-          </Button>
+          <Dialog open={isTimerDialogOpen} onOpenChange={setIsTimerDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-20 flex-col space-y-2">
+                <Timer className="w-6 h-6" />
+                <span>Timer</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Timer de Estudo</DialogTitle>
+              </DialogHeader>
+              <StudyTimer />
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" className="h-20 flex-col space-y-2" asChild>
             <a href="/flashcards">
               <User className="w-6 h-6" />
