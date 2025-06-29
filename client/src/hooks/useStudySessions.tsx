@@ -1,131 +1,90 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface StudySession {
   id: string;
-  user_id: string;
-  subject_id: string | null;
-  topic_id: string | null;
+  userId: string;
+  subjectId: string | null;
+  topicId: string | null;
   title: string;
   description: string | null;
-  scheduled_date: string;
-  scheduled_time: string | null;
-  duration_minutes: number;
+  scheduledDate: string;
+  scheduledTime: string | null;
+  durationMinutes: number;
   status: 'pending' | 'in_progress' | 'completed' | 'skipped';
   priority: number;
   type: 'study' | 'review' | 'exercise' | 'exam';
-  completed_at: string | null;
-  created_at: string;
-  updated_at: string;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const useStudySessions = () => {
-  const { user } = useAuth();
-  const [sessions, setSessions] = useState<StudySession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: sessions = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['/study-sessions'],
+    enabled: !!localStorage.getItem('authToken'),
+  });
 
-  useEffect(() => {
-    if (user) {
-      fetchSessions();
-    } else {
-      setSessions([]);
-      setLoading(false);
-    }
-  }, [user]);
+  const createSessionMutation = useMutation({
+    mutationFn: (sessionData: Partial<StudySession>) =>
+      apiRequest('/study-sessions', {
+        method: 'POST',
+        body: JSON.stringify(sessionData),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/study-sessions'] });
+    },
+  });
 
-  const fetchSessions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('study_sessions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('scheduled_date', { ascending: true });
+  const updateSessionMutation = useMutation({
+    mutationFn: ({ id, ...updates }: { id: string } & Partial<StudySession>) =>
+      apiRequest(`/study-sessions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/study-sessions'] });
+    },
+  });
 
-      if (error) {
-        console.error('Error fetching sessions:', error);
-      } else {
-        // Type assertion para garantir que os dados estão no formato correto
-        setSessions((data as StudySession[]) || []);
-      }
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const completeSessionMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/study-sessions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ 
+          status: 'completed',
+          completedAt: new Date().toISOString()
+        }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/study-sessions'] });
+    },
+  });
 
-  const createSession = async (session: Omit<StudySession, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('study_sessions')
-        .insert([{ ...session, user_id: user?.id }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating session:', error);
-        return { error };
-      }
-
-      setSessions(prev => [...prev, data as StudySession]);
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error creating session:', error);
-      return { error };
-    }
-  };
-
-  const updateSession = async (id: string, updates: Partial<StudySession>) => {
-    try {
-      const { error } = await supabase
-        .from('study_sessions')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error updating session:', error);
-        return { error };
-      }
-
-      await fetchSessions();
-      return { error: null };
-    } catch (error) {
-      console.error('Error updating session:', error);
-      return { error };
-    }
-  };
-
-  const completeSession = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('study_sessions')
-        .update({ 
-          status: 'completed', 
-          completed_at: new Date().toISOString() 
-        })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error completing session:', error);
-        return { error };
-      }
-
-      await fetchSessions();
-      return { error: null };
-    } catch (error) {
-      console.error('Error completing session:', error);
-      return { error };
-    }
-  };
+  const deleteSessionMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/study-sessions/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/study-sessions'] });
+    },
+  });
 
   return {
     sessions,
     loading,
-    createSession,
-    updateSession,
-    completeSession,
-    refetch: fetchSessions
+    error,
+    createSession: createSessionMutation.mutateAsync,
+    updateSession: updateSessionMutation.mutateAsync,
+    completeSession: completeSessionMutation.mutateAsync,
+    deleteSession: deleteSessionMutation.mutateAsync,
+    isCreating: createSessionMutation.isPending,
+    isUpdating: updateSessionMutation.isPending,
+    isDeleting: deleteSessionMutation.isPending,
   };
 };

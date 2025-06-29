@@ -1,120 +1,68 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface Subject {
   id: string;
-  user_id: string;
+  userId: string;
   name: string;
   description: string | null;
   color: string;
   priority: number;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const useSubjects = () => {
-  const { user } = useAuth();
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: subjects = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['/subjects'],
+    enabled: !!localStorage.getItem('authToken'),
+  });
 
-  useEffect(() => {
-    if (user) {
-      fetchSubjects();
-    } else {
-      setSubjects([]);
-      setLoading(false);
-    }
-  }, [user]);
+  const createSubjectMutation = useMutation({
+    mutationFn: (subjectData: Partial<Subject>) =>
+      apiRequest('/subjects', {
+        method: 'POST',
+        body: JSON.stringify(subjectData),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/subjects'] });
+    },
+  });
 
-  const fetchSubjects = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('subjects')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+  const updateSubjectMutation = useMutation({
+    mutationFn: ({ id, ...updates }: { id: string } & Partial<Subject>) =>
+      apiRequest(`/subjects/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/subjects'] });
+    },
+  });
 
-      if (error) {
-        console.error('Error fetching subjects:', error);
-      } else {
-        setSubjects(data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching subjects:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createSubject = async (subject: Omit<Subject, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('subjects')
-        .insert([{ ...subject, user_id: user?.id }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating subject:', error);
-        return { error };
-      }
-
-      setSubjects(prev => [data, ...prev]);
-      return { data, error: null };
-    } catch (error) {
-      console.error('Error creating subject:', error);
-      return { error };
-    }
-  };
-
-  const updateSubject = async (id: string, updates: Partial<Subject>) => {
-    try {
-      const { error } = await supabase
-        .from('subjects')
-        .update(updates)
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error updating subject:', error);
-        return { error };
-      }
-
-      await fetchSubjects();
-      return { error: null };
-    } catch (error) {
-      console.error('Error updating subject:', error);
-      return { error };
-    }
-  };
-
-  const deleteSubject = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('subjects')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error deleting subject:', error);
-        return { error };
-      }
-
-      setSubjects(prev => prev.filter(subject => subject.id !== id));
-      return { error: null };
-    } catch (error) {
-      console.error('Error deleting subject:', error);
-      return { error };
-    }
-  };
+  const deleteSubjectMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest(`/subjects/${id}`, {
+        method: 'DELETE',
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/subjects'] });
+    },
+  });
 
   return {
     subjects,
     loading,
-    createSubject,
-    updateSubject,
-    deleteSubject,
-    refetch: fetchSubjects
+    error,
+    createSubject: createSubjectMutation.mutateAsync,
+    updateSubject: updateSubjectMutation.mutateAsync,
+    deleteSubject: deleteSubjectMutation.mutateAsync,
+    isCreating: createSubjectMutation.isPending,
+    isUpdating: updateSubjectMutation.isPending,
+    isDeleting: deleteSubjectMutation.isPending,
   };
 };
