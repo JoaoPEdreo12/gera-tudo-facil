@@ -6,6 +6,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useStudySessions } from '@/hooks/useStudySessions';
 import { useSubjects } from '@/hooks/useSubjects';
 import { useAI } from '@/hooks/useAI';
+import { AIAssistant } from '@/components/AIAssistant';
 import { 
   Calendar, 
   Clock, 
@@ -24,7 +25,7 @@ const Dashboard = () => {
   const { profile, progress, loading: profileLoading } = useProfile();
   const { sessions, loading: sessionsLoading, completeSession } = useStudySessions();
   const { subjects } = useSubjects();
-  const { askAI } = useAI();
+  const { generateFeedback } = useAI();
   const [isTimerDialogOpen, setIsTimerDialogOpen] = useState(false);
 
   if (profileLoading || sessionsLoading) {
@@ -244,6 +245,12 @@ const Dashboard = () => {
           </Button>
         </div>
       </Card>
+
+      {/* Seção da IA */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Assistente de IA</h2>
+        <AIAssistant />
+      </div>
     </div>
   );
 };

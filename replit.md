@@ -124,6 +124,9 @@ Changelog:
 - June 29, 2025. Configured authentication with Supabase Auth
 - June 29, 2025. Set up AI helper with OpenAI integration via Supabase Edge Functions
 - June 29, 2025. Updated data hooks to work directly with Supabase
+- June 29, 2025. Fixed session creation and flashcard functionality
+- June 29, 2025. Implemented complete AI system with schedule generation, feedback, reports, flashcard creation, and concept explanation
+- June 29, 2025. Added AI Assistant component to Dashboard with full functionality
 ```
 
 ## User Preferences

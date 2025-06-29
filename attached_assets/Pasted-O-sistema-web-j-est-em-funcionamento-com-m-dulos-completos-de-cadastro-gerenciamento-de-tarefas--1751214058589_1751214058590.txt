@@ -1,0 +1,51 @@
+O sistema web já está em funcionamento, com módulos completos de cadastro, gerenciamento de tarefas, disciplinas, progresso e calendário. Agora, o objetivo é integrar um módulo de inteligência artificial capaz de realizar análises e fornecer sugestões personalizadas com base no comportamento e nas metas do aluno.
+
+Objetivo geral:
+
+Desenvolver e integrar uma IA que otimize a experiência de estudo do aluno por meio de recomendações automatizadas de cronograma, feedbacks personalizados, e análises de desempenho, com foco em constância, organização e melhoria contínua.
+
+⸻
+
+ESCOPO FUNCIONAL
+
+1. Geração de cronogramas personalizados
+	•	A IA deverá gerar um cronograma de estudos diário ou semanal com base em:
+	•	Disciplinas cadastradas pelo aluno e suas prioridades
+	•	Tempo disponível por dia e por semana
+	•	Metas individuais
+	•	Histórico de tarefas realizadas ou pendentes
+	•	A IA deverá retornar um objeto estruturado contendo os blocos de estudo recomendados, respeitando carga horária, distribuição equilibrada entre matérias e sequência lógica.
+
+2. Replanejamento automatizado
+	•	Com base no comportamento do aluno (atrasos, matérias negligenciadas, padrões de desempenho), a IA deve ser capaz de:
+	•	Sugerir redistribuição de matérias
+	•	Reorganizar blocos de tempo
+	•	Identificar sobrecarga ou lacunas na rotina
+
+3. Feedback personalizado e motivacional
+	•	A IA deve emitir mensagens adaptadas à evolução individual do aluno, como:
+	•	Reconhecimento de streaks (dias consecutivos estudando)
+	•	Alerta de baixa constância
+	•	Incentivo ao equilíbrio entre disciplinas
+	•	Os feedbacks devem ser objetivos, úteis e alinhados com os dados de uso.
+
+4. Geração de relatórios interpretativos
+	•	A IA deverá processar dados do aluno para gerar análises claras e acionáveis, incluindo:
+	•	Comparativo entre disciplinas mais e menos estudadas
+	•	Frequência de revisão
+	•	Percentual de metas cumpridas
+	•	Recomendações de ajuste no cronograma
+
+⸻
+
+ESPECIFICAÇÕES TÉCNICAS
+	•	Modelo sugerido: OpenAI GPT-4-turbo (pode ser adaptado conforme disponibilidade)
+	•	Entrada: JSON com dados estruturados do aluno (ex: matérias, tempo disponível, progresso, metas)
+	•	Saída esperada:
+	•	JSON com o cronograma recomendado
+	•	Strings de feedback motivacional
+	•	Resumo analítico de desempenho
+	•	O sistema deve permitir chamada assíncrona à API e integração limpa com o backend atual.
+	•	Toda recomendação da IA deve ser armazenável e auditável.
+
+⸻

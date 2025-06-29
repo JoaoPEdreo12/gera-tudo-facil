@@ -6,339 +6,204 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
-      achievements: {
-        Row: {
-          created_at: string
-          description: string | null
-          icon: string | null
-          id: string
-          name: string
-          points: number | null
-          requirement_value: number | null
-          type: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name: string
-          points?: number | null
-          requirement_value?: number | null
-          type?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          icon?: string | null
-          id?: string
-          name?: string
-          points?: number | null
-          requirement_value?: number | null
-          type?: string | null
-        }
-        Relationships: []
-      }
-      flashcards: {
-        Row: {
-          answer: string
-          correct_count: number | null
-          created_at: string
-          difficulty: number | null
-          id: string
-          next_review_date: string | null
-          question: string
-          review_count: number | null
-          subject_id: string | null
-          topic_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          answer: string
-          correct_count?: number | null
-          created_at?: string
-          difficulty?: number | null
-          id?: string
-          next_review_date?: string | null
-          question: string
-          review_count?: number | null
-          subject_id?: string | null
-          topic_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          answer?: string
-          correct_count?: number | null
-          created_at?: string
-          difficulty?: number | null
-          id?: string
-          next_review_date?: string | null
-          question?: string
-          review_count?: number | null
-          subject_id?: string | null
-          topic_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "flashcards_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "flashcards_topic_id_fkey"
-            columns: ["topic_id"]
-            isOneToOne: false
-            referencedRelation: "topics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
+          id: string
+          user_id: string
+          full_name: string | null
+          email: string | null
           avatar_url: string | null
           created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
           updated_at: string
-          user_id: string
         }
         Insert: {
+          id?: string
+          user_id: string
+          full_name?: string | null
+          email?: string | null
           avatar_url?: string | null
           created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
           updated_at?: string
-          user_id: string
         }
         Update: {
+          id?: string
+          user_id?: string
+          full_name?: string | null
+          email?: string | null
           avatar_url?: string | null
           created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
           updated_at?: string
-          user_id?: string
         }
-        Relationships: []
-      }
-      study_sessions: {
-        Row: {
-          completed_at: string | null
-          created_at: string
-          description: string | null
-          duration_minutes: number | null
-          id: string
-          priority: number | null
-          scheduled_date: string
-          scheduled_time: string | null
-          status: string | null
-          subject_id: string | null
-          title: string
-          topic_id: string | null
-          type: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string
-          description?: string | null
-          duration_minutes?: number | null
-          id?: string
-          priority?: number | null
-          scheduled_date: string
-          scheduled_time?: string | null
-          status?: string | null
-          subject_id?: string | null
-          title: string
-          topic_id?: string | null
-          type?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string
-          description?: string | null
-          duration_minutes?: number | null
-          id?: string
-          priority?: number | null
-          scheduled_date?: string
-          scheduled_time?: string | null
-          status?: string | null
-          subject_id?: string | null
-          title?: string
-          topic_id?: string | null
-          type?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "study_sessions_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "study_sessions_topic_id_fkey"
-            columns: ["topic_id"]
-            isOneToOne: false
-            referencedRelation: "topics"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       subjects: {
         Row: {
-          color: string | null
-          created_at: string
-          description: string | null
           id: string
-          name: string
-          priority: number | null
-          updated_at: string
           user_id: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
           name: string
-          priority?: number | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          priority?: number | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      topics: {
-        Row: {
-          completed: boolean | null
-          created_at: string
           description: string | null
-          id: string
-          name: string
-          subject_id: string
+          color: string
+          priority: number
+          created_at: string
           updated_at: string
         }
         Insert: {
-          completed?: boolean | null
-          created_at?: string
-          description?: string | null
           id?: string
+          user_id: string
           name: string
-          subject_id: string
-          updated_at?: string
-        }
-        Update: {
-          completed?: boolean | null
-          created_at?: string
           description?: string | null
-          id?: string
-          name?: string
-          subject_id?: string
+          color: string
+          priority: number
+          created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "topics_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_achievements: {
-        Row: {
-          achievement_id: string
-          earned_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          achievement_id: string
-          earned_at?: string
-          id?: string
-          user_id: string
-        }
         Update: {
-          achievement_id?: string
-          earned_at?: string
           id?: string
           user_id?: string
+          name?: string
+          description?: string | null
+          color?: string
+          priority?: number
+          created_at?: string
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_achievements_achievement_id_fkey"
-            columns: ["achievement_id"]
-            isOneToOne: false
-            referencedRelation: "achievements"
-            referencedColumns: ["id"]
-          },
-        ]
+      }
+      study_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          subject_id: string | null
+          topic_id: string | null
+          title: string
+          description: string | null
+          scheduled_date: string
+          scheduled_time: string | null
+          duration_minutes: number
+          status: 'pending' | 'in_progress' | 'completed' | 'skipped'
+          priority: number
+          type: 'study' | 'review' | 'exercise' | 'exam'
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subject_id?: string | null
+          topic_id?: string | null
+          title: string
+          description?: string | null
+          scheduled_date: string
+          scheduled_time?: string | null
+          duration_minutes: number
+          status?: 'pending' | 'in_progress' | 'completed' | 'skipped'
+          priority: number
+          type: 'study' | 'review' | 'exercise' | 'exam'
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          subject_id?: string | null
+          topic_id?: string | null
+          title?: string
+          description?: string | null
+          scheduled_date?: string
+          scheduled_time?: string | null
+          duration_minutes?: number
+          status?: 'pending' | 'in_progress' | 'completed' | 'skipped'
+          priority?: number
+          type?: 'study' | 'review' | 'exercise' | 'exam'
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      flashcards: {
+        Row: {
+          id: string
+          user_id: string
+          subject_id: string | null
+          topic_id: string | null
+          question: string
+          answer: string
+          difficulty: number
+          next_review_date: string
+          review_count: number
+          correct_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subject_id?: string | null
+          topic_id?: string | null
+          question: string
+          answer: string
+          difficulty: number
+          next_review_date: string
+          review_count?: number
+          correct_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          subject_id?: string | null
+          topic_id?: string | null
+          question?: string
+          answer?: string
+          difficulty?: number
+          next_review_date?: string
+          review_count?: number
+          correct_count?: number
+          created_at?: string
+          updated_at?: string
+        }
       }
       user_progress: {
         Row: {
-          completed_sessions: number | null
-          created_at: string
           id: string
-          last_study_date: string | null
-          level: number | null
-          streak_days: number | null
-          total_points: number | null
-          total_study_time_minutes: number | null
-          updated_at: string
           user_id: string
+          total_points: number
+          level: number
+          streak_days: number
+          last_study_date: string | null
+          total_study_time_minutes: number
+          completed_sessions: number
+          created_at: string
+          updated_at: string
         }
         Insert: {
-          completed_sessions?: number | null
-          created_at?: string
           id?: string
-          last_study_date?: string | null
-          level?: number | null
-          streak_days?: number | null
-          total_points?: number | null
-          total_study_time_minutes?: number | null
-          updated_at?: string
           user_id: string
+          total_points?: number
+          level?: number
+          streak_days?: number
+          last_study_date?: string | null
+          total_study_time_minutes?: number
+          completed_sessions?: number
+          created_at?: string
+          updated_at?: string
         }
         Update: {
-          completed_sessions?: number | null
-          created_at?: string
           id?: string
-          last_study_date?: string | null
-          level?: number | null
-          streak_days?: number | null
-          total_points?: number | null
-          total_study_time_minutes?: number | null
-          updated_at?: string
           user_id?: string
+          total_points?: number
+          level?: number
+          streak_days?: number
+          last_study_date?: string | null
+          total_study_time_minutes?: number
+          completed_sessions?: number
+          created_at?: string
+          updated_at?: string
         }
-        Relationships: []
       }
     }
     Views: {
@@ -350,119 +215,5 @@ export type Database = {
     Enums: {
       [_ in never]: never
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
   }
 }
-
-type DefaultSchema = Database[Extract<keyof Database, "public">]
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const
