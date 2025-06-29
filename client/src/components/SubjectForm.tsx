@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSubjects } from '@/hooks/useSubjects';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 interface SubjectFormProps {
@@ -15,7 +16,8 @@ interface SubjectFormProps {
 }
 
 export const SubjectForm = ({ onClose, editingSubject }: SubjectFormProps) => {
-  const { createSubject, updateSubject } = useSubjects();
+  const { createSubject, updateSubject, isCreating, isUpdating } = useSubjects();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -39,21 +41,33 @@ export const SubjectForm = ({ onClose, editingSubject }: SubjectFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast({ 
+        title: "Erro", 
+        description: "Usuário não autenticado",
+        variant: "destructive" 
+      });
+      return;
+    }
+    
     try {
+      const subjectData = {
+        ...formData,
+        user_id: user.id
+      };
+      
       if (editingSubject) {
-        const { error } = await updateSubject(editingSubject.id, formData);
-        if (error) throw error;
+        await updateSubject({ id: editingSubject.id, ...subjectData });
         toast({ title: "Matéria atualizada com sucesso!" });
       } else {
-        const { error } = await createSubject(formData);
-        if (error) throw error;
+        await createSubject(subjectData);
         toast({ title: "Matéria criada com sucesso!" });
       }
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       toast({ 
         title: "Erro", 
-        description: "Não foi possível salvar a matéria",
+        description: error.message || "Não foi possível salvar a matéria",
         variant: "destructive" 
       });
     }
