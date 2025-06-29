@@ -24,7 +24,7 @@ export const SessionForm = ({ onClose, editingSession }: SessionFormProps) => {
   const [formData, setFormData] = useState({
     title: editingSession?.title || '',
     description: editingSession?.description || '',
-    subject_id: editingSession?.subject_id || '',
+    subject_id: editingSession?.subject_id || 'none',
     scheduled_date: editingSession?.scheduled_date || new Date().toISOString().split('T')[0],
     scheduled_time: editingSession?.scheduled_time || '09:00',
     duration_minutes: editingSession?.duration_minutes || 60,
@@ -49,6 +49,7 @@ export const SessionForm = ({ onClose, editingSession }: SessionFormProps) => {
       const sessionData = {
         ...formData,
         user_id: user.id,
+        subject_id: formData.subject_id === 'none' ? null : formData.subject_id,
         topic_id: null,
         completed_at: null
       };
@@ -110,7 +111,7 @@ export const SessionForm = ({ onClose, editingSession }: SessionFormProps) => {
               <SelectValue placeholder="Selecione uma matéria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhuma matéria específica</SelectItem>
+              <SelectItem value="none">Nenhuma matéria específica</SelectItem>
               {subjects?.map((subject) => (
                 <SelectItem key={subject.id} value={subject.id}>
                   {subject.name}

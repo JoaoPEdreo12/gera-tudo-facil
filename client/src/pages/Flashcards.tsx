@@ -33,7 +33,7 @@ const Flashcards = () => {
   const filteredCards = flashcards.filter(card => {
     const matchesSearch = card.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          card.answer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = !selectedSubject || card.subject_id === selectedSubject;
+    const matchesSubject = !selectedSubject || selectedSubject === 'all' || card.subject_id === selectedSubject;
     return matchesSearch && matchesSubject;
   });
 
@@ -44,7 +44,11 @@ const Flashcards = () => {
   const handleCreateCard = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await createFlashcard(newCard);
+      const cardData = {
+        ...newCard,
+        subject_id: newCard.subject_id === 'none' ? null : newCard.subject_id
+      };
+      const { error } = await createFlashcard(cardData);
       if (error) throw error;
       
       toast({ title: "Flashcard criado com sucesso!" });
@@ -161,7 +165,7 @@ const Flashcards = () => {
             <SelectValue placeholder="Todas as matérias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as matérias</SelectItem>
+            <SelectItem value="all">Todas as matérias</SelectItem>
             {subjects.map((subject) => (
               <SelectItem key={subject.id} value={subject.id}>
                 {subject.name}

@@ -24,7 +24,7 @@ export const FlashcardForm = ({ onClose, editingFlashcard }: FlashcardFormProps)
   const [formData, setFormData] = useState({
     question: editingFlashcard?.question || '',
     answer: editingFlashcard?.answer || '',
-    subject_id: editingFlashcard?.subject_id || '',
+    subject_id: editingFlashcard?.subject_id || 'none',
     difficulty: editingFlashcard?.difficulty || 1,
   });
 
@@ -44,6 +44,7 @@ export const FlashcardForm = ({ onClose, editingFlashcard }: FlashcardFormProps)
       const flashcardData = {
         ...formData,
         user_id: user.id,
+        subject_id: formData.subject_id === 'none' ? null : formData.subject_id,
         topic_id: null,
         next_review_date: new Date().toISOString(),
         review_count: 0,
@@ -109,7 +110,7 @@ export const FlashcardForm = ({ onClose, editingFlashcard }: FlashcardFormProps)
               <SelectValue placeholder="Selecione uma matéria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhuma matéria específica</SelectItem>
+              <SelectItem value="none">Nenhuma matéria específica</SelectItem>
               {subjects?.map((subject) => (
                 <SelectItem key={subject.id} value={subject.id}>
                   {subject.name}
