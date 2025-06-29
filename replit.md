@@ -119,6 +119,11 @@ This is a comprehensive study management application built with a modern full-st
 ```
 Changelog:
 - June 29, 2025. Initial setup
+- June 29, 2025. Successfully migrated from Replit Agent to Replit environment
+- June 29, 2025. Maintained Supabase integration as requested by user
+- June 29, 2025. Configured authentication with Supabase Auth
+- June 29, 2025. Set up AI helper with OpenAI integration via Supabase Edge Functions
+- June 29, 2025. Updated data hooks to work directly with Supabase
 ```
 
 ## User Preferences

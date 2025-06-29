@@ -19,6 +19,14 @@ const Auth = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (user && !loading) {
+      setLocation('/dashboard');
+    }
+  }, [user, loading, setLocation]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -27,10 +35,7 @@ const Auth = () => {
     );
   }
 
-  const [, setLocation] = useLocation();
-
   if (user) {
-    setLocation('/dashboard');
     return null;
   }
 
