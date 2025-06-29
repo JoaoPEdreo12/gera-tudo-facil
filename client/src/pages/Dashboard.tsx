@@ -246,7 +246,7 @@ const Dashboard = () => {
         </div>
       </Card>
 
-      {/* Seção da IA */}
+      {/* AI Assistant Section */}
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4">Assistente de IA</h2>
         <AIAssistant />

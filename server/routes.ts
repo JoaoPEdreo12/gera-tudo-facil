@@ -472,11 +472,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(result);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in ai-study-helper:', error);
       res.status(500).json({ 
-        error: error.message || 'Erro interno do servidor',
-        details: error.toString()
+        error: error?.message || 'Erro interno do servidor',
+        details: error?.toString() || 'Erro desconhecido'
       });
     }
   });
