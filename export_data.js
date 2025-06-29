@@ -1,57 +1,42 @@
-// Script para exportar dados do Supabase atual
-import { createClient } from '@supabase/supabase-js'
-import fs from 'fs'
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  'https://scewhpkvjoktzpxggbgw.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjZXdocGt2am9rdHpweGdnYmd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExNjM1MjUsImV4cCI6MjA2NjczOTUyNX0.VsR7KTiKlbw7YImUVW4ylTbzdHxksKvlkJMVS8RR3tI'
-)
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 async function exportAllData() {
-  const tables = ['profiles', 'subjects', 'study_sessions', 'flashcards', 'user_progress']
-  const exportData = {}
-  
-  console.log('🚀 Iniciando exportação dos dados...')
-  
-  for (const table of tables) {
-    console.log(`📊 Exportando tabela: ${table}`)
+  try {
+    console.log('Checking current database tables...');
     
-    try {
-      const { data, error } = await supabase
-        .from(table)
-        .select('*')
-      
-      if (error) {
-        console.error(`❌ Erro ao exportar ${table}:`, error)
-        continue
+    // Check if tables exist by trying to query them
+    const tables = ['profiles', 'subjects', 'study_sessions', 'flashcards', 'user_progress'];
+    
+    for (const table of tables) {
+      try {
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .limit(1);
+        
+        if (error) {
+          console.log(`❌ Table '${table}' not found or not accessible:`, error.message);
+        } else {
+          console.log(`✅ Table '${table}' exists and is accessible`);
+          console.log(`   Records found: ${data?.length || 0}`);
+        }
+      } catch (err) {
+        console.log(`❌ Error checking table '${table}':`, err.message);
       }
-      
-      exportData[table] = data
-      console.log(`✅ ${table}: ${data.length} registros exportados`)
-      
-      // Salvar cada tabela em arquivo separado
-      fs.writeFileSync(
-        `backup_${table}.json`, 
-        JSON.stringify(data, null, 2)
-      )
-      
-    } catch (err) {
-      console.error(`❌ Erro inesperado ao exportar ${table}:`, err)
     }
+    
+    console.log('\n📋 Database status check complete.');
+    console.log('\nIf tables are missing, please run the SQL from setup-database.sql in your Supabase SQL Editor.');
+    
+  } catch (error) {
+    console.error('❌ Database connection failed:', error.message);
+    console.log('\nPlease check your SUPABASE_URL and SUPABASE_ANON_KEY environment variables.');
   }
-  
-  // Salvar backup completo
-  fs.writeFileSync('backup_completo.json', JSON.stringify(exportData, null, 2))
-  
-  console.log('🎉 Exportação concluída!')
-  console.log('📁 Arquivos criados:')
-  console.log('  - backup_completo.json (todos os dados)')
-  tables.forEach(table => {
-    console.log(`  - backup_${table}.json`)
-  })
-  
-  return exportData
 }
 
-// Executar exportação
-exportAllData().catch(console.error)
+exportAllData();
