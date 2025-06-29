@@ -1,14 +1,10 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { apiRequest } from '@/lib/queryClient';
-
-interface User {
-  id: string;
-  email: string;
-}
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
-  session: { token: string } | null;
+  session: any;
   loading: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -31,52 +27,44 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<{ token: string } | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing auth token
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      setSession({ token });
-      // Optionally verify token with server and get user data
-      verifyToken(token);
-    } else {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
-    }
-  }, []);
+    });
 
-  const verifyToken = async (token: string) => {
-    try {
-      // You could add a verify endpoint to check if token is still valid
-      // For now, we'll just assume it's valid if it exists
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        setUser(JSON.parse(userData));
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-      setLoading(false);
-    } catch (error) {
-      // Token is invalid, clear it
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      setSession(null);
-      setUser(null);
-      setLoading(false);
-    }
-  };
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      const response = await apiRequest('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, fullName }),
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
+        }
       });
 
-      // Store auth data
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
-      setSession({ token: response.token });
-      setUser(response.user);
+      if (error) {
+        return { error };
+      }
 
       return { error: null };
     } catch (error: any) {
@@ -86,16 +74,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      // Store auth data
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('userData', JSON.stringify(response.user));
-      setSession({ token: response.token });
-      setUser(response.user);
+      if (error) {
+        return { error };
+      }
 
       return { error: null };
     } catch (error: any) {
@@ -104,23 +90,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = async () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
-    setSession(null);
-    setUser(null);
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        loading,
-        signUp,
-        signIn,
-        signOut,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      session,
+      loading,
+      signUp,
+      signIn,
+      signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );

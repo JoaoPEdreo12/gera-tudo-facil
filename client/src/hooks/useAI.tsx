@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useAI = () => {
   const [loading, setLoading] = useState(false);
@@ -7,11 +7,15 @@ export const useAI = () => {
   const askAI = async (prompt: string, type: string = 'general') => {
     setLoading(true);
     try {
-      const response = await apiRequest('/ai-helper', {
-        method: 'POST',
-        body: JSON.stringify({ prompt, type }),
+      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
+        body: { prompt, type }
       });
-      return response;
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error: any) {
       console.error('AI Error:', error);
       return { error: error.message };
