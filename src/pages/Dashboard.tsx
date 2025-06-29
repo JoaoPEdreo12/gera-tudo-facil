@@ -2,38 +2,62 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useProfile } from '@/hooks/useProfile';
+import { useStudySessions } from '@/hooks/useStudySessions';
+import { useSubjects } from '@/hooks/useSubjects';
 import { 
   Calendar, 
   Clock, 
   FileText, 
-  User 
+  User,
+  TrendingUp
 } from 'lucide-react';
+import { format, isToday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const Dashboard = () => {
-  const todayTasks = [
-    { id: 1, subject: 'Matemática', topic: 'Funções Quadráticas', duration: '2h', completed: false },
-    { id: 2, subject: 'Português', topic: 'Literatura Brasileira', duration: '1h30', completed: true },
-    { id: 3, subject: 'Física', topic: 'Cinemática', duration: '1h45', completed: false },
-    { id: 4, subject: 'Química', topic: 'Estequiometria', duration: '2h', completed: false },
-  ];
+  const { profile, progress, loading: profileLoading } = useProfile();
+  const { sessions, loading: sessionsLoading } = useStudySessions();
+  const { subjects } = useSubjects();
 
-  const weeklyProgress = [
-    { subject: 'Matemática', progress: 75, color: 'bg-blue-500' },
-    { subject: 'Português', progress: 90, color: 'bg-green-500' },
-    { subject: 'Física', progress: 60, color: 'bg-purple-500' },
-    { subject: 'Química', progress: 45, color: 'bg-orange-500' },
-    { subject: 'Biologia', progress: 80, color: 'bg-teal-500' },
-  ];
+  if (profileLoading || sessionsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  const completedTasks = todayTasks.filter(task => task.completed).length;
-  const totalTasks = todayTasks.length;
-  const completionRate = (completedTasks / totalTasks) * 100;
+  const todaySessions = sessions.filter(session => 
+    isToday(new Date(session.scheduled_date))
+  );
+
+  const completedToday = todaySessions.filter(session => 
+    session.status === 'completed'
+  ).length;
+
+  const totalToday = todaySessions.length;
+  const completionRate = totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
+
+  const subjectsWithProgress = subjects.map(subject => {
+    const subjectSessions = sessions.filter(s => s.subject_id === subject.id);
+    const completedSessions = subjectSessions.filter(s => s.status === 'completed').length;
+    const totalSessions = subjectSessions.length;
+    const progressPercent = totalSessions > 0 ? (completedSessions / totalSessions) * 100 : 0;
+    
+    return {
+      ...subject,
+      progress: Math.round(progressPercent)
+    };
+  });
 
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-primary to-blue-600 text-white p-8 rounded-xl">
-        <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta!</h1>
+        <h1 className="text-3xl font-bold mb-2">
+          Bem-vindo de volta, {profile?.full_name || 'Estudante'}!
+        </h1>
         <p className="text-lg opacity-90">
           Continue sua jornada rumo ao ENEM. Você está no caminho certo!
         </p>
@@ -48,7 +72,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Tarefas Hoje</p>
-              <p className="text-2xl font-bold">{completedTasks}/{totalTasks}</p>
+              <p className="text-2xl font-bold">{completedToday}/{totalToday}</p>
             </div>
           </div>
         </Card>
@@ -60,7 +84,9 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Horas Estudadas</p>
-              <p className="text-2xl font-bold">6.5h</p>
+              <p className="text-2xl font-bold">
+                {Math.round((progress?.total_study_time_minutes || 0) / 60)}h
+              </p>
             </div>
           </div>
         </Card>
@@ -68,11 +94,11 @@ const Dashboard = () => {
         <Card className="p-6">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-purple-100 rounded-lg">
-              <FileText className="w-6 h-6 text-purple-600" />
+              <TrendingUp className="w-6 h-6 text-purple-600" />
             </div>
             <div>
               <p className="text-sm text-gray-600">Sequência</p>
-              <p className="text-2xl font-bold">12 dias</p>
+              <p className="text-2xl font-bold">{progress?.streak_days || 0} dias</p>
             </div>
           </div>
         </Card>
@@ -84,7 +110,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Nível</p>
-              <p className="text-2xl font-bold">Avançado</p>
+              <p className="text-2xl font-bold">{progress?.level || 1}</p>
             </div>
           </div>
         </Card>
@@ -103,49 +129,66 @@ const Dashboard = () => {
           <Progress value={completionRate} className="mb-6" />
           
           <div className="space-y-4">
-            {todayTasks.map((task) => (
-              <div
-                key={task.id}
-                className={`p-4 rounded-lg border ${
-                  task.completed 
-                    ? 'bg-green-50 border-green-200' 
-                    : 'bg-white border-gray-200'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className={`font-medium ${
-                      task.completed ? 'text-green-800 line-through' : 'text-gray-900'
-                    }`}>
-                      {task.subject} - {task.topic}
-                    </h3>
-                    <p className="text-sm text-gray-600">{task.duration}</p>
+            {todaySessions.length > 0 ? (
+              todaySessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={`p-4 rounded-lg border ${
+                    session.status === 'completed'
+                      ? 'bg-green-50 border-green-200' 
+                      : 'bg-white border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className={`font-medium ${
+                        session.status === 'completed' 
+                          ? 'text-green-800 line-through' 
+                          : 'text-gray-900'
+                      }`}>
+                        {session.title}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {session.duration_minutes} min • {session.type}
+                      </p>
+                    </div>
+                    <Button
+                      variant={session.status === 'completed' ? "outline" : "default"}
+                      size="sm"
+                      disabled={session.status === 'completed'}
+                    >
+                      {session.status === 'completed' ? 'Concluído' : 'Iniciar'}
+                    </Button>
                   </div>
-                  <Button
-                    variant={task.completed ? "outline" : "default"}
-                    size="sm"
-                  >
-                    {task.completed ? 'Concluído' : 'Iniciar'}
-                  </Button>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                Nenhuma sessão agendada para hoje
+              </p>
+            )}
           </div>
         </Card>
 
         {/* Weekly Progress */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-6">Progresso Semanal</h2>
+          <h2 className="text-xl font-semibold mb-6">Progresso por Matéria</h2>
           <div className="space-y-6">
-            {weeklyProgress.map((item) => (
-              <div key={item.subject}>
-                <div className="flex justify-between mb-2">
-                  <span className="font-medium">{item.subject}</span>
-                  <span className="text-sm text-gray-600">{item.progress}%</span>
+            {subjectsWithProgress.length > 0 ? (
+              subjectsWithProgress.map((subject) => (
+                <div key={subject.id}>
+                  <div className="flex justify-between mb-2">
+                    <span className="font-medium">{subject.name}</span>
+                    <span className="text-sm text-gray-600">{subject.progress}%</span>
+                  </div>
+                  <Progress value={subject.progress} />
                 </div>
-                <Progress value={item.progress} />
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                Nenhuma matéria cadastrada ainda
+              </p>
+            )}
           </div>
         </Card>
       </div>
@@ -154,21 +197,27 @@ const Dashboard = () => {
       <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">Ações Rápidas</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button className="h-20 flex-col space-y-2">
-            <Calendar className="w-6 h-6" />
-            <span>Cronograma</span>
+          <Button className="h-20 flex-col space-y-2" asChild>
+            <a href="/cronograma">
+              <Calendar className="w-6 h-6" />
+              <span>Cronograma</span>
+            </a>
           </Button>
-          <Button variant="outline" className="h-20 flex-col space-y-2">
-            <FileText className="w-6 h-6" />
-            <span>Nova Matéria</span>
+          <Button variant="outline" className="h-20 flex-col space-y-2" asChild>
+            <a href="/materias">
+              <FileText className="w-6 h-6" />
+              <span>Nova Matéria</span>
+            </a>
           </Button>
           <Button variant="outline" className="h-20 flex-col space-y-2">
             <Clock className="w-6 h-6" />
             <span>Timer</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col space-y-2">
-            <User className="w-6 h-6" />
-            <span>Flashcards</span>
+          <Button variant="outline" className="h-20 flex-col space-y-2" asChild>
+            <a href="/flashcards">
+              <User className="w-6 h-6" />
+              <span>Flashcards</span>
+            </a>
           </Button>
         </div>
       </Card>

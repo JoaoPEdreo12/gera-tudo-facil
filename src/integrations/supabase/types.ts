@@ -9,7 +9,337 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          points: number | null
+          requirement_value: number | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          points?: number | null
+          requirement_value?: number | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          points?: number | null
+          requirement_value?: number | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          answer: string
+          correct_count: number | null
+          created_at: string
+          difficulty: number | null
+          id: string
+          next_review_date: string | null
+          question: string
+          review_count: number | null
+          subject_id: string | null
+          topic_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          correct_count?: number | null
+          created_at?: string
+          difficulty?: number | null
+          id?: string
+          next_review_date?: string | null
+          question: string
+          review_count?: number | null
+          subject_id?: string | null
+          topic_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          correct_count?: number | null
+          created_at?: string
+          difficulty?: number | null
+          id?: string
+          next_review_date?: string | null
+          question?: string
+          review_count?: number | null
+          subject_id?: string | null
+          topic_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcards_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          priority: number | null
+          scheduled_date: string
+          scheduled_time: string | null
+          status: string | null
+          subject_id: string | null
+          title: string
+          topic_id: string | null
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          priority?: number | null
+          scheduled_date: string
+          scheduled_time?: string | null
+          status?: string | null
+          subject_id?: string | null
+          title: string
+          topic_id?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          priority?: number | null
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string | null
+          subject_id?: string | null
+          title?: string
+          topic_id?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_sessions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          priority: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          priority?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          priority?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      topics: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          completed_sessions: number | null
+          created_at: string
+          id: string
+          last_study_date: string | null
+          level: number | null
+          streak_days: number | null
+          total_points: number | null
+          total_study_time_minutes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_sessions?: number | null
+          created_at?: string
+          id?: string
+          last_study_date?: string | null
+          level?: number | null
+          streak_days?: number | null
+          total_points?: number | null
+          total_study_time_minutes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_sessions?: number | null
+          created_at?: string
+          id?: string
+          last_study_date?: string | null
+          level?: number | null
+          streak_days?: number | null
+          total_points?: number | null
+          total_study_time_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
