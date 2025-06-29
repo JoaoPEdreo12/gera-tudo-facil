@@ -25,7 +25,7 @@ const Flashcards = () => {
   const [newCard, setNewCard] = useState({
     question: '',
     answer: '',
-    subject_id: '',
+    subject_id: 'none',
     difficulty: 1,
     next_review_date: new Date().toISOString().split('T')[0]
   });
@@ -46,7 +46,10 @@ const Flashcards = () => {
     try {
       const cardData = {
         ...newCard,
-        subject_id: newCard.subject_id === 'none' ? null : newCard.subject_id
+        subject_id: newCard.subject_id === 'none' ? null : newCard.subject_id,
+        topic_id: null,
+        review_count: 0,
+        correct_count: 0
       };
       const { error } = await createFlashcard(cardData);
       if (error) throw error;
@@ -55,7 +58,7 @@ const Flashcards = () => {
       setNewCard({
         question: '',
         answer: '',
-        subject_id: '',
+        subject_id: 'none',
         difficulty: 1,
         next_review_date: new Date().toISOString().split('T')[0]
       });
@@ -128,6 +131,7 @@ const Flashcards = () => {
                     <SelectValue placeholder="Selecione uma matéria" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">Nenhuma matéria específica</SelectItem>
                     {subjects.map((subject) => (
                       <SelectItem key={subject.id} value={subject.id}>
                         {subject.name}
