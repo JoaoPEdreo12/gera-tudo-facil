@@ -1,23 +1,16 @@
-import { db } from "./db";
-import { eq, and } from "drizzle-orm";
-import {
-  users,
-  profiles,
-  subjects,
-  studySessions,
-  flashcards,
-  userProgress,
-  type User,
-  type InsertUser,
-  type Profile,
-  type InsertProfile,
-  type Subject,
-  type InsertSubject,
-  type StudySession,
-  type InsertStudySession,
-  type Flashcard,
-  type InsertFlashcard,
-  type UserProgress,
+import { supabase } from "./db";
+import type {
+  User,
+  InsertUser,
+  Profile,
+  InsertProfile,
+  Subject,
+  InsertSubject,
+  StudySession,
+  InsertStudySession,
+  Flashcard,
+  InsertFlashcard,
+  UserProgress,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -60,149 +53,266 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // User management
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('auth_users')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as User;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('auth_users')
+      .select('*')
+      .eq('email', email)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as User;
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(user).returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('auth_users')
+      .insert(user)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as User;
   }
 
   // Profile management
   async getProfile(userId: string): Promise<Profile | undefined> {
-    const result = await db.select().from(profiles).where(eq(profiles.userId, userId)).limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as Profile;
   }
 
   async createProfile(profile: InsertProfile): Promise<Profile> {
-    const result = await db.insert(profiles).values(profile).returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('profiles')
+      .insert(profile)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Profile;
   }
 
   async updateProfile(userId: string, updates: Partial<InsertProfile>): Promise<Profile> {
-    const result = await db
-      .update(profiles)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(profiles.userId, userId))
-      .returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Profile;
   }
 
   // Subject management
   async getSubjects(userId: string): Promise<Subject[]> {
-    return await db.select().from(subjects).where(eq(subjects.userId, userId));
+    const { data, error } = await supabase
+      .from('subjects')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    return data as Subject[];
   }
 
   async getSubject(id: string, userId: string): Promise<Subject | undefined> {
-    const result = await db
-      .select()
-      .from(subjects)
-      .where(and(eq(subjects.id, id), eq(subjects.userId, userId)))
-      .limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('subjects')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as Subject;
   }
 
   async createSubject(subject: InsertSubject): Promise<Subject> {
-    const result = await db.insert(subjects).values(subject).returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('subjects')
+      .insert(subject)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Subject;
   }
 
   async updateSubject(id: string, userId: string, updates: Partial<InsertSubject>): Promise<Subject> {
-    const result = await db
-      .update(subjects)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(subjects.id, id), eq(subjects.userId, userId)))
-      .returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('subjects')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Subject;
   }
 
   async deleteSubject(id: string, userId: string): Promise<void> {
-    await db.delete(subjects).where(and(eq(subjects.id, id), eq(subjects.userId, userId)));
+    const { error } = await supabase
+      .from('subjects')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    
+    if (error) throw error;
   }
 
   // Study session management
   async getStudySessions(userId: string): Promise<StudySession[]> {
-    return await db.select().from(studySessions).where(eq(studySessions.userId, userId));
+    const { data, error } = await supabase
+      .from('study_sessions')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    return data as StudySession[];
   }
 
   async getStudySession(id: string, userId: string): Promise<StudySession | undefined> {
-    const result = await db
-      .select()
-      .from(studySessions)
-      .where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)))
-      .limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('study_sessions')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as StudySession;
   }
 
   async createStudySession(session: InsertStudySession): Promise<StudySession> {
-    const result = await db.insert(studySessions).values(session).returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('study_sessions')
+      .insert(session)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as StudySession;
   }
 
   async updateStudySession(id: string, userId: string, updates: Partial<InsertStudySession>): Promise<StudySession> {
-    const result = await db
-      .update(studySessions)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)))
-      .returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('study_sessions')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as StudySession;
   }
 
   async deleteStudySession(id: string, userId: string): Promise<void> {
-    await db.delete(studySessions).where(and(eq(studySessions.id, id), eq(studySessions.userId, userId)));
+    const { error } = await supabase
+      .from('study_sessions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    
+    if (error) throw error;
   }
 
   // Flashcard management
   async getFlashcards(userId: string): Promise<Flashcard[]> {
-    return await db.select().from(flashcards).where(eq(flashcards.userId, userId));
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (error) throw error;
+    return data as Flashcard[];
   }
 
   async getFlashcard(id: string, userId: string): Promise<Flashcard | undefined> {
-    const result = await db
-      .select()
-      .from(flashcards)
-      .where(and(eq(flashcards.id, id), eq(flashcards.userId, userId)))
-      .limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('flashcards')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as Flashcard;
   }
 
   async createFlashcard(flashcard: InsertFlashcard): Promise<Flashcard> {
-    const result = await db.insert(flashcards).values(flashcard).returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('flashcards')
+      .insert(flashcard)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Flashcard;
   }
 
   async updateFlashcard(id: string, userId: string, updates: Partial<InsertFlashcard>): Promise<Flashcard> {
-    const result = await db
-      .update(flashcards)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(and(eq(flashcards.id, id), eq(flashcards.userId, userId)))
-      .returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('flashcards')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Flashcard;
   }
 
   async deleteFlashcard(id: string, userId: string): Promise<void> {
-    await db.delete(flashcards).where(and(eq(flashcards.id, id), eq(flashcards.userId, userId)));
+    const { error } = await supabase
+      .from('flashcards')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+    
+    if (error) throw error;
   }
 
   // User progress
   async getUserProgress(userId: string): Promise<UserProgress | undefined> {
-    const result = await db.select().from(userProgress).where(eq(userProgress.userId, userId)).limit(1);
-    return result[0];
+    const { data, error } = await supabase
+      .from('user_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error || !data) return undefined;
+    return data as UserProgress;
   }
 
   async updateUserProgress(userId: string, updates: Partial<UserProgress>): Promise<UserProgress> {
-    const result = await db
-      .update(userProgress)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(userProgress.userId, userId))
-      .returning();
-    return result[0];
+    const { data, error } = await supabase
+      .from('user_progress')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as UserProgress;
   }
 }
 

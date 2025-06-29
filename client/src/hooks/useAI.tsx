@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from './useAuth';
 
 interface AIScheduleRequest {
@@ -72,91 +72,73 @@ export const useAI = () => {
 
   const generateScheduleMutation = useMutation({
     mutationFn: async (request: AIScheduleRequest): Promise<AIScheduleResponse> => {
-      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
-        body: {
+      return await apiRequest('/api/ai-study-helper', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'generate_schedule',
-          userId: user?.id,
           data: request
-        }
+        }),
       });
-
-      if (error) throw error;
-      return data;
     }
   });
 
   const generateFeedbackMutation = useMutation({
     mutationFn: async (userData: any): Promise<AIFeedbackResponse> => {
-      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
-        body: {
+      return await apiRequest('/api/ai-study-helper', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'generate_feedback',
-          userId: user?.id,
           data: userData
-        }
+        }),
       });
-
-      if (error) throw error;
-      return data;
     }
   });
 
   const generateReportMutation = useMutation({
     mutationFn: async (period: 'week' | 'month'): Promise<AIReportResponse> => {
-      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
-        body: {
+      return await apiRequest('/api/ai-study-helper', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'generate_report',
-          userId: user?.id,
           data: { period }
-        }
+        }),
       });
-
-      if (error) throw error;
-      return data;
     }
   });
 
   const replanScheduleMutation = useMutation({
     mutationFn: async (adjustments: any): Promise<AIScheduleResponse> => {
-      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
-        body: {
+      return await apiRequest('/api/ai-study-helper', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'replan_schedule',
-          userId: user?.id,
           data: adjustments
-        }
+        }),
       });
-
-      if (error) throw error;
-      return data;
     }
   });
 
   const generateFlashcardsMutation = useMutation({
     mutationFn: async (topic: { subject: string; content: string }) => {
-      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
-        body: {
+      return await apiRequest('/api/ai-study-helper', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'generate_flashcards',
-          userId: user?.id,
           data: topic
-        }
+        }),
       });
-
-      if (error) throw error;
-      return data;
     }
   });
 
   const explainConceptMutation = useMutation({
     mutationFn: async (concept: { subject: string; topic: string; level: 'basic' | 'intermediate' | 'advanced' }) => {
-      const { data, error } = await supabase.functions.invoke('ai-study-helper', {
-        body: {
+      return await apiRequest('/api/ai-study-helper', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'explain_concept',
-          userId: user?.id,
           data: concept
-        }
+        }),
       });
-
-      if (error) throw error;
-      return data;
     }
   });
 
